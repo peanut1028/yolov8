@@ -55,10 +55,11 @@ class Detect(nn.Module):
 
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
-            return x
+        # if self.training:  # Training path
+        #     return x
         y = self._inference(x)
-        return y if self.export else (y, x)
+        # return y if self.export else (y, x)
+        return (y, x)
 
     def forward_end2end(self, x):
         """
@@ -185,7 +186,7 @@ class Segment(Detect):
         x = Detect.forward(self, x)
         if self.training:
             return x, mc, p
-        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p)) 
 
 
 class OBB(Detect):

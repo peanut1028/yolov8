@@ -153,7 +153,7 @@ class Exporter:
         callbacks (list, optional): List of callback functions. Defaults to None.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, jit_train_mode=False):
         """
         Initializes the Exporter class.
 
@@ -166,6 +166,7 @@ class Exporter:
         if self.args.format.lower() in {"coreml", "mlmodel"}:  # fix attempt for protobuf<3.20.x errors
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"  # must run before TensorBoard callback
 
+        self.jit_train_mode = jit_train_mode  # for TorchScript export
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -238,20 +239,33 @@ class Exporter:
 
         # Update model
         model = deepcopy(model).to(self.device)
-        for p in model.parameters():
-            p.requires_grad = False
-        model.eval()
-        model.float()
-        model = model.fuse()
-        for m in model.modules():
-            if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
-                m.dynamic = self.args.dynamic
-                m.export = True
-                m.format = self.args.format
-            elif isinstance(m, C2f) and not is_tf_format:
-                # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                m.forward = m.forward_split
-
+        if jit and self.jit_train_mode:
+            model.train()
+            for p in model.parameters():
+                p.requires_grad = True
+            model.float()
+            for m in model.modules():
+                # if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
+                #     m.dynamic = self.args.dynamic
+                #     m.export = True
+                #     m.format = self.args.format
+                if isinstance(m, C2f) and not is_tf_format:
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_split
+        else:
+            model.eval()
+            for p in model.parameters():
+                p.requires_grad = False
+            model.float()
+            # model = model.fuse() # fuse conv and bn
+            for m in model.modules():
+                if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
+                    m.dynamic = self.args.dynamic
+                    m.export = True
+                    m.format = self.args.format
+                if isinstance(m, C2f) and not is_tf_format:
+                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                    m.forward = m.forward_split
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
@@ -380,7 +394,11 @@ class Exporter:
 
             optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
         else:
-            ts.save(str(f), _extra_files=extra_files)
+            if self.jit_train_mode:
+                ts.save(str(f))
+            else:
+                # ts.save(str(f), _extra_files=extra_files)
+                ts.save(str(f))
         return f, None
 
     @try_export
