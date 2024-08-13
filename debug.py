@@ -35,15 +35,17 @@ train
 
 
 # segment
-weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\weights\best.pt"
-cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
-data_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\coco128-seg.yaml"
-model = YOLO(cfg_path).load(weight_path) 
-results = model.train(data=data_path, 
-            imgsz=640, 
-            batch=16,    
-            epochs=100,
-            name="yolov8-seg") 
+# weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\weights\best.pt"
+# cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
+# data_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\coco128-seg.yaml"
+# model = YOLO(cfg_path).load(weight_path) 
+# results = model.train(data=data_path, 
+#             imgsz=640, 
+#             batch=16,    
+#             epochs=100,
+#             workers=0,
+#             amp=False,            
+#             name="yolov8-seg") 
 
 
 
@@ -98,9 +100,9 @@ export
 # success = model.export(format="TorchScript", jit_train_mode=False, device='cuda') 
 
 # segment
-# weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\weights\best.pt"
-# model = YOLO(weight_path)
-# success = model.export(format="TorchScript", jit_train_mode=True, device='cuda') 
+weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg13\weights\best.pt"
+model = YOLO(weight_path)
+success = model.export(format="TorchScript", jit_train_mode=True, device='cuda') 
 
 # 测试模型
 # train_model_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\classify\weights\best_train.torchscript"
