@@ -113,8 +113,9 @@ class BaseValidator:
             self.device = trainer.device
             self.data = trainer.data
             self.args.half = self.device.type != "cpu"  # force FP16 val during training
-            model = trainer.ema.ema or trainer.model
-            model = model.half() if self.args.half else model.float()
+            # model = trainer.ema.ema or trainer.model
+            # model = model.half() if self.args.half else model.float()
+            model = trainer.ema.ema.float()
             # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
@@ -175,7 +176,7 @@ class BaseValidator:
 
             # Inference
             with dt[1]:
-                preds = model(batch["img"], augment=augment)
+                preds = model(batch["img"].float(), augment=augment)
 
             # Loss
             with dt[2]:

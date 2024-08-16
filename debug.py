@@ -35,17 +35,17 @@ train
 
 
 # segment
-# weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\weights\best.pt"
-# cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
-# data_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\coco128-seg.yaml"
-# model = YOLO(cfg_path).load(weight_path) 
-# results = model.train(data=data_path, 
-#             imgsz=640, 
-#             batch=16,    
-#             epochs=100,
-#             workers=0,
-#             amp=True,
-#             name="yolov8-seg") 
+weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg16\weights\best.pt"
+cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
+data_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\coco128-seg.yaml"
+model = YOLO(weight_path) 
+results = model.train(data=data_path, 
+            imgsz=640, 
+            batch=4,    
+            epochs=100,
+            workers=0,
+            amp=False,
+            name="yolov8-seg") 
 
 
 
@@ -83,6 +83,32 @@ val
 #                     conf=0.25) 
 # print(metrics)
 
+
+"""
+predict
+"""
+# classify
+# weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\classify\weights\best.pt"
+# model = YOLO(weight_path)
+# img = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\classify\ImageNet\ILSVRC2012_val_00000001.JPEG"
+# results = model.predict(img, imgsz=640, conf=0.25) 
+# print(results)
+
+
+# detect
+# weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\detect\weights\best.pt"
+# model = YOLO(weight_path)
+# img = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\detect\coco128-seg\val2017\000000000139.jpg"
+# results = model.predict(img, imgsz=640, conf=0.25) 
+# print(results)
+
+
+# segment
+# weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg16\weights\best.pt"
+# model = YOLO(weight_path)
+# img = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\images\train2017\100119.bmp"
+# results = model.predict(img, save=True, imgsz=640, conf=0.5) 
+# print(results)
 
 
 """
