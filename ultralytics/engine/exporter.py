@@ -244,15 +244,20 @@ class Exporter:
             for p in model.parameters():
                 p.requires_grad = True
             model.float()
-            for m in model.modules():
-                # if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
-                #     m.dynamic = self.args.dynamic
-                #     m.export = True
-                #     m.format = self.args.format
-                if isinstance(m, C2f) and not is_tf_format:
-                    # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                    m.forward = m.forward_split
+            # for m in model.modules():
+            #     # if isinstance(m, (Detect, RTDETRDecoder)):  # includes all Detect subclasses like Segment, Pose, OBB
+            #     #     m.dynamic = self.args.dynamic
+            #     #     m.export = True
+            #     #     m.format = self.args.format
+            #     if isinstance(m, C2f) and not is_tf_format:
+            #         # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+            #         m.forward = m.forward_split
             script_model = torch.jit.script(model)
+            dummy_input = torch.randn((1, 3, *self.imgsz), device=self.device)
+            model.eval()
+            script_model.eval()
+            o1 = model(dummy_input)
+            o2 = script_model(dummy_input)
             script_model.save(f"{file.stem}.torchscript")
             LOGGER.info(f"TorchScript export success ✅ saved as '{file.stem}.torchscript'")
             return
