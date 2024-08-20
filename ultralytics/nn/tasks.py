@@ -335,6 +335,133 @@ class DetectionModel(BaseModel):
             self.info()
             LOGGER.info("")
 
+    def forward(self, x):
+        """
+        for script
+
+        Args:
+            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
+
+        Returns:
+            (torch.Tensor): The output of the network.
+        """
+        # # -----------yolov8n det lidian-------------
+        # y = []  # outputs
+        # x = self.model[0](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[1](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[2](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[3](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[4](x)
+        # y.append(x)
+        # x = self.model[5](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[6](x)
+        # y.append(x)
+        # x = self.model[7](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[8](x)
+        # y.append(torch.tensor([0]))
+        # x = self.model[9](x)
+        # y.append(x)
+        # x = self.model[10](x)
+        # y.append(torch.tensor([0]))
+        # xl = [x if j == -1 else y[j] for j in self.model[11].f]
+        # x = self.model[11](xl)
+        # y.append(torch.tensor([0]))
+        # x = self.model[12](x)
+        # y.append(x)
+        # x = self.model[13](x)
+        # y.append(torch.tensor([0]))
+
+        # xl = [x if j == -1 else y[j] for j in self.model[14].f]
+        # x = self.model[14](xl)
+        # y.append(torch.tensor([0]))
+        # x = self.model[15](x)
+        # y.append(x)
+        # x = self.model[16](x)
+        # y.append(torch.tensor([0]))
+        # xl = [x if j == -1 else y[j] for j in self.model[17].f]
+        # x = self.model[17](xl)
+        # y.append(torch.tensor([0]))
+        # x = self.model[18](x)
+        # y.append(x)
+        # x = self.model[19](x)
+        # y.append(torch.tensor([0]))
+        # xl = [x if j == -1 else y[j] for j in self.model[20].f]
+        # x = self.model[20](xl)
+        # y.append(torch.tensor([0]))
+        # x = self.model[21](x)
+        # y.append(x)
+
+        # xl = [x if j == -1 else y[j] for j in self.model[22].f]
+        # x = self.model[22](xl)
+        # y.append(torch.tensor([0]))
+        # # -----------yolov8n det lidian over-------------
+
+        # -----------yolov8n seg lidian-------------
+        y = []
+        x = self.model[0](x)
+        y.append(torch.tensor([0]))
+        x = self.model[1](x)
+        y.append(torch.tensor([0]))
+        x = self.model[2](x)
+        y.append(torch.tensor([0]))
+        x = self.model[3](x)
+        y.append(torch.tensor([0]))
+        x = self.model[4](x)
+        y.append(x)
+        x = self.model[5](x)
+        y.append(torch.tensor([0]))
+        x = self.model[6](x)
+        y.append(x)
+        x = self.model[7](x)
+        y.append(torch.tensor([0]))
+        x = self.model[8](x)
+        y.append(torch.tensor([0]))
+        x = self.model[9](x)
+        y.append(x)
+        x = self.model[10](x)
+        y.append(torch.tensor([0]))
+        xl = [x if j == -1 else y[j] for j in self.model[11].f]
+        x = self.model[11](xl)
+        y.append(torch.tensor([0]))
+        x = self.model[12](x)
+        y.append(x)
+        x = self.model[13](x)
+        y.append(torch.tensor([0]))
+
+        xl = [x if j == -1 else y[j] for j in self.model[14].f]
+        x = self.model[14](xl)
+        y.append(torch.tensor([0]))
+        x = self.model[15](x)
+        y.append(x)
+        x = self.model[16](x)
+        y.append(torch.tensor([0]))
+        xl = [x if j == -1 else y[j] for j in self.model[17].f]
+        x = self.model[17](xl)
+        y.append(torch.tensor([0]))
+        x = self.model[18](x)
+        y.append(x)
+        x = self.model[19](x)
+        y.append(torch.tensor([0]))
+        xl = [x if j == -1 else y[j] for j in self.model[20].f]
+        x = self.model[20](xl)
+        y.append(torch.tensor([0]))
+        x = self.model[21](x)
+        y.append(x)
+
+        xl = [x if j == -1 else y[j] for j in self.model[22].f]
+        x = self.model[22](xl)
+        y.append(torch.tensor([0]))
+        # -----------yolov8n seg lidian over-------------
+
+        return x
+    
+
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
         if getattr(self, "end2end", False):
@@ -446,6 +573,20 @@ class ClassificationModel(BaseModel):
         self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.info()
+
+    def forward(self, x):
+        """
+        for script
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            (torch.Tensor): Model's output tensor.
+        """
+        for m in self.model:
+            x = m(x)  # run
+        return x
 
     @staticmethod
     def reshape_outputs(model, nc):

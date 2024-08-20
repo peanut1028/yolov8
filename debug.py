@@ -97,10 +97,10 @@ export
 # weight_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\detect\weights\best.pt"
 # cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\detect\yolov8-seg.yaml"
 # model = YOLO(weight_path)
-# success = model.export(format="TorchScript", jit_train_mode=False, device='cuda') 
+# success = model.export(format="TorchScript", jit_train_mode=True, device='cuda') 
 
 # segment
-weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg13\weights\best.pt"
+weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg16\weights\best.pt"
 model = YOLO(weight_path)
 success = model.export(format="TorchScript", jit_train_mode=True, device='cuda') 
 

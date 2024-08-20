@@ -252,6 +252,8 @@ class Exporter:
                 if isinstance(m, C2f) and not is_tf_format:
                     # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                     m.forward = m.forward_split
+            script_model = torch.jit.script(model)
+            script_model.save(f"{file.stem}.torchscript")
         else:
             model.eval()
             for p in model.parameters():

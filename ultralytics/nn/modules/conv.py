@@ -2,7 +2,7 @@
 """Convolution modules."""
 
 import math
-
+from typing import List
 import numpy as np
 import torch
 import torch.nn as nn
@@ -328,6 +328,6 @@ class Concat(nn.Module):
         super().__init__()
         self.d = dimension
 
-    def forward(self, x):
+    def forward(self, x:List[torch.Tensor]):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)

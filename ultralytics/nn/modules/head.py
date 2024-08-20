@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """Model head modules."""
-
+from typing import List
 import copy
 import math
 
@@ -43,18 +43,24 @@ class Detect(nn.Module):
         )
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
+        self.shape = None
+        self.first = True
+        # if self.end2end:
+        #     self.one2one_cv2 = copy.deepcopy(self.cv2)
+        #     self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-        if self.end2end:
-            self.one2one_cv2 = copy.deepcopy(self.cv2)
-            self.one2one_cv3 = copy.deepcopy(self.cv3)
-
-    def forward(self, x):
+    def forward(self, x:List[torch.Tensor]):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        if self.end2end:
-            return self.forward_end2end(x)
+        # if self.end2end:
+        #     return self.forward_end2end(x)
 
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        # for i in range(self.nl):
+        #     x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+
+        x[0] = torch.cat((self.cv2[0](x[0]), self.cv3[0](x[0])), 1)
+        x[1] = torch.cat((self.cv2[1](x[1]), self.cv3[1](x[1])), 1)
+        x[2] = torch.cat((self.cv2[2](x[2]), self.cv3[2](x[2])), 1)
+
         # if self.training:  # Training path
         #     return x
         y = self._inference(x)
@@ -85,31 +91,15 @@ class Detect(nn.Module):
         y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, {"one2many": x, "one2one": one2one})
 
-    def _inference(self, x):
+    def _inference(self, x:List[torch.Tensor]):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
         # Inference path
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
-            self.shape = shape
+        self.anchors, self.strides = (x_.transpose(0, 1) for x_ in make_anchors(x, self.stride))
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
 
-        if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
-            box = x_cat[:, : self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4 :]
-        else:
-            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-
-        if self.export and self.format in {"tflite", "edgetpu"}:
-            # Precompute normalization factor to increase numerical stability
-            # See https://github.com/ultralytics/ultralytics/issues/7371
-            grid_h = shape[2]
-            grid_w = shape[3]
-            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
-            norm = self.strides / (self.stride[0] * grid_size)
-            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
         return torch.cat((dbox, cls.sigmoid()), 1)
 
@@ -128,7 +118,7 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode bounding boxes."""
-        return dist2bbox(bboxes, anchors, xywh=not self.end2end, dim=1)
+        return dist2bbox(bboxes, anchors, xywh=True, dim=1)
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
@@ -177,13 +167,29 @@ class Segment(Detect):
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
-    def forward(self, x):
+    def detect_forward(self, x:List[torch.Tensor]):
+        x[0] = torch.cat((self.cv2[0](x[0]), self.cv3[0](x[0])), 1)
+        x[1] = torch.cat((self.cv2[1](x[1]), self.cv3[1](x[1])), 1)
+        x[2] = torch.cat((self.cv2[2](x[2]), self.cv3[2](x[2])), 1)
+        shape = x[0].shape  # BCHW
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        self.anchors, self.strides = (x_.transpose(0, 1) for x_ in make_anchors(x, self.stride))
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        y =  torch.cat((dbox, cls.sigmoid()), 1)
+        return y, x
+
+    def forward(self, x:List[torch.Tensor]):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
-
-        mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-        x = Detect.forward(self, x)
+        cvouts = []
+        for i, m in enumerate(self.cv4):
+            cvouts.append(m(x[i]).view(bs, self.nm, -1))
+        mc = torch.cat(cvouts, 2)
+        # mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
+        x = self.detect_forward(x)
         return x, mc, p
         # if self.training:
         #     return x, mc, p
