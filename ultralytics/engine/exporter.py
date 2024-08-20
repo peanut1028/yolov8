@@ -254,6 +254,8 @@ class Exporter:
                     m.forward = m.forward_split
             script_model = torch.jit.script(model)
             script_model.save(f"{file.stem}.torchscript")
+            LOGGER.info(f"TorchScript export success ✅ saved as '{file.stem}.torchscript'")
+            return
         else:
             model.eval()
             for p in model.parameters():
