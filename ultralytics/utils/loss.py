@@ -330,6 +330,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             )
             # Masks loss
             masks = batch["masks"].to(self.device).float()
+            # v8的mask内的值与classid无关，0为背景，1为第一个目标，2为第二个目标，以此类推
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
 
