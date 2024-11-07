@@ -563,7 +563,7 @@ class Model(nn.Module):
 
     def export(
         self,
-        jit_train_mode=False,
+        jit_train_mode=False,   # true:script false:trace
         **kwargs,
     ) -> str:
         """
