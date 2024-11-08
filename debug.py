@@ -35,7 +35,7 @@ train
 
 
 # segment
-weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg16\weights\best.pt"
+weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg45\weights\best.pt"
 cfg_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
 data_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\data\segment\coco128-seg.yaml"
 model = YOLO(weight_path) 
