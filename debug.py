@@ -100,9 +100,9 @@ export
 # success = model.export(format="TorchScript", jit_train_mode=True, device='cuda') 
 
 # segment
-weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg45\weights\best.pt"
-model = YOLO(weight_path)
-success = model.export(format="TorchScript", jit_train_mode=False, device='cuda') 
+# weight_path = r"E:\LGJ\program\yolov8\runs\segment\yolov8-seg45\weights\best.pt"
+# model = YOLO(weight_path)
+# success = model.export(format="TorchScript", jit_train_mode=False, device='cuda') 
 
 # 测试模型
 # train_model_path = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\classify\weights\best_train.torchscript"
@@ -118,3 +118,8 @@ success = model.export(format="TorchScript", jit_train_mode=False, device='cuda'
 # model.model.eval()
 # results4 = model.model(img)
 # pass
+
+pretrainPath = r"yolov8n-seg_pretrain.pt"
+cfgPath = r"E:\Project\AutoAI\AAIstandardExamples(rawmodel)\lidian\yolov8\raw_pt\segment\yolov8-seg.yaml"
+model = YOLO(cfgPath).load(pretrainPath)
+success = model.export(format="TorchScript", jit_train_mode=False, device='cuda') 
